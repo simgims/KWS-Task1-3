@@ -26,7 +26,7 @@ function focusStyle(feature: FeatureLike) {
 
 const municipalityLayer = new VectorLayer({
   source: new VectorSource({
-    url: "KWS-Task1-3/fylker.json",
+    url: "fylker.json",
     format: new GeoJSON(),
   }),
   style: new Style({ stroke: new Stroke({ color: "red", width: 2 }) }),
@@ -38,7 +38,7 @@ const map = new Map({
     municipalityLayer,
     new VectorLayer({
       source: new VectorSource({
-        url: "KWS-Task1-3/VGS.json",
+        url: "VGS.json",
         format: new GeoJSON(),
       }),
     }),
