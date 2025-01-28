@@ -1,36 +1,70 @@
 import React, { useEffect, useRef } from "react";
-import { Map, View } from "ol";
+import { Feature, Map, MapBrowserEvent, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import { OSM } from "ol/source";
-import { useGeographic } from "ol/proj";
-
-// Styling of OpenLayers components like zoom and pan controls
 import "ol/ol.css";
+import { useGeographic } from "ol/proj";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import { GeoJSON } from "ol/format";
+import { Fill, Stroke, Style, Text } from "ol/style";
+import { FeatureLike } from "ol/Feature";
 
-// By calling the "useGeographic" function in OpenLayers, we tell that we want coordinates to be in degrees
-//  instead of meters, which is the default. Without this `center: [10.6, 59.9]` brings us to "null island"
 useGeographic();
 
-// Here we create a Map object. Make sure you `import { Map } from "ol"`. Otherwise, the standard Javascript
-//  map data structure will be used
-const map = new Map({
-  // The map will be centered on a position in longitude (x-coordinate, east) and latitude (y-coordinate, north),
-  //   with a certain zoom level
-  view: new View({ center: [10.8, 59.9], zoom: 13 }),
-  // map tile images will be from the Open Street Map (OSM) tile layer
-  layers: [new TileLayer({ source: new OSM() })],
+function focusStyle(feature: FeatureLike) {
+  return new Style({
+    stroke: new Stroke({ color: "red", width: 2 }),
+    text: new Text({
+      text: feature.getProperties().name,
+      fill: new Fill({ color: "red" }),
+      stroke: new Stroke({ color: "white" }),
+    }),
+  });
+}
+
+const CountyLayer = new VectorLayer({
+  source: new VectorSource({
+    url: "KWS-Task1-3/geojson/fylker.json",
+    format: new GeoJSON(),
+  }),
+  style: new Style({ stroke: new Stroke({ color: "red, width: 2" }) }),
 });
 
-// A functional React component
-export default function Application() {
-  // `useRef` bridges the gap between JavaScript functions that expect DOM objects and React components
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  // When we display the page, we want the OpenLayers map object to target the DOM object refererred to by the
-  // map React component
+const map = new Map({
+  layers: [
+    new TileLayer({ source: new OSM() }),
+    CountyLayer,
+    new VectorLayer({
+      source: new VectorSource({
+        url: "KWS-Task1-3/geojson/VGS.json",
+        format: new GeoJSON(),
+      }),
+    }),
+  ],
+  view: new View({ center: [10.6, 59.9], zoom: 10 }),
+});
+
+export function App() {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const focusFeatures = useRef<Feature[]>([]);
+
+  function handlePointerMove(e: MapBrowserEvent<MouseEvent>) {
+    for (const feature of focusFeatures.current) {
+      feature.setStyle(undefined);
+    }
+    const features = CountyLayer.getSource()!.getFeaturesAtCoordinate(
+      e.coordinate,
+    );
+    for (const feature of features) {
+      feature.setStyle(focusStyle);
+    }
+    focusFeatures.current = features;
+  }
+
   useEffect(() => {
     map.setTarget(mapRef.current!);
+    map.on("pointermove", handlePointerMove);
   }, []);
-
-  // This is the location (in React) where we want the map to be displayed
   return <div ref={mapRef}></div>;
 }
