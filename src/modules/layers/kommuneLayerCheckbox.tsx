@@ -22,7 +22,7 @@ interface KommuneProperties {
 }
 
 const source = new VectorSource<TypedFeature<KommuneProperties>>({
-  url: "./kommuner.geojson",
+  url: "./kommuner.json",
   format: new GeoJSON(),
 });
 const municipalityLayer = new VectorLayer({ source });
