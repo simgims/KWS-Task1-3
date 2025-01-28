@@ -26,16 +26,25 @@ function focusStyle(feature: FeatureLike) {
 
 const municipalityLayer = new VectorLayer({
   source: new VectorSource({
-    url: "./fylker.json",
+    url: "./kommuner.json",
     format: new GeoJSON(),
   }),
   style: new Style({ stroke: new Stroke({ color: "red", width: 2 }) }),
+});
+
+const countyLayer = new VectorLayer({
+  source: new VectorSource({
+    url: "./fylker.json",
+    format: new GeoJSON(),
+  }),
+  style: new Style({ stroke: new Stroke({ color: "blue", width: 2 }) }),
 });
 
 const map = new Map({
   layers: [
     new TileLayer({ source: new OSM() }),
     municipalityLayer,
+    countyLayer,
     new VectorLayer({
       source: new VectorSource({
         url: "./VGS.json",
