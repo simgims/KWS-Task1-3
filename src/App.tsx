@@ -1,140 +1,36 @@
-import React, { ReactNode, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { Map, View } from "ol";
+import TileLayer from "ol/layer/Tile";
+import { OSM } from "ol/source";
+import { useGeographic } from "ol/proj";
 
-function ProductCategoryRow({
-  category,
-}: {
-  category: ReactNode;
-  key?: string;
-}) {
-  return (
-    <tr>
-      <th colSpan={2}>{category}</th>
-    </tr>
-  );
-}
+// Styling of OpenLayers components like zoom and pan controls
+import "ol/ol.css";
 
-type Product = (typeof PRODUCTS)[number];
+// By calling the "useGeographic" function in OpenLayers, we tell that we want coordinates to be in degrees
+//  instead of meters, which is the default. Without this `center: [10.6, 59.9]` brings us to "null island"
+useGeographic();
 
-function ProductRow({ product }: { product: Product; key?: string }) {
-  const name = product.stocked ? (
-    product.name
-  ) : (
-    <span style={{ color: "red" }}>{product.name}</span>
-  );
+// Here we create a Map object. Make sure you `import { Map } from "ol"`. Otherwise, the standard Javascript
+//  map data structure will be used
+const map = new Map({
+  // The map will be centered on a position in longitude (x-coordinate, east) and latitude (y-coordinate, north),
+  //   with a certain zoom level
+  view: new View({ center: [10.8, 59.9], zoom: 13 }),
+  // map tile images will be from the Open Street Map (OSM) tile layer
+  layers: [new TileLayer({ source: new OSM() })],
+});
 
-  return (
-    <tr>
-      <td>{name}</td>
-      <td>{product.price}</td>
-    </tr>
-  );
-}
+// A functional React component
+export default function Application() {
+  // `useRef` bridges the gap between JavaScript functions that expect DOM objects and React components
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  // When we display the page, we want the OpenLayers map object to target the DOM object refererred to by the
+  // map React component
+  useEffect(() => {
+    map.setTarget(mapRef.current!);
+  }, []);
 
-function ProductTable({
-  products,
-  filterText,
-  inStockOnly,
-}: {
-  products: Product[];
-  filterText?: string;
-  inStockOnly?: boolean;
-}) {
-  const rows: ReactNode[] = [];
-  let lastCategory: ReactNode = null;
-
-  products.forEach((product) => {
-    if (product.name.toLowerCase().indexOf(filterText!.toLowerCase()) === -1) {
-      return;
-    }
-    if (inStockOnly && !product.stocked) {
-      return;
-    }
-    if (product.category !== lastCategory) {
-      rows.push(
-        <ProductCategoryRow
-          category={product.category}
-          key={product.category}
-        />,
-      );
-    }
-    rows.push(<ProductRow product={product} key={product.name} />);
-    lastCategory = product.category;
-  });
-
-  return (
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Price</th>
-        </tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </table>
-  );
-}
-
-function SearchBar({
-  filterText,
-  inStockOnly,
-  onFilterTextChange,
-  onInStockOnlyChange,
-}: {
-  filterText: string;
-  inStockOnly: boolean;
-  onFilterTextChange: (value: string) => void;
-  onInStockOnlyChange: (value: boolean) => void;
-}) {
-  return (
-    <form>
-      <input
-        type="text"
-        value={filterText}
-        placeholder="Search..."
-        onChange={(e) => onFilterTextChange(e.target.value)}
-      />
-      <label>
-        <input
-          type="checkbox"
-          checked={inStockOnly}
-          onChange={(e) => onInStockOnlyChange(e.target.checked)}
-        />
-        Only show in stock
-      </label>
-    </form>
-  );
-}
-
-function FilterableProductTable({ products }: { products: Product[] }) {
-  const [filterText, setFilterText] = useState("");
-  const [inStockOnly, setInStockOnly] = useState(false);
-
-  return (
-    <div>
-      <SearchBar
-        filterText={filterText}
-        inStockOnly={inStockOnly}
-        onFilterTextChange={setFilterText}
-        onInStockOnlyChange={setInStockOnly}
-      />
-      <ProductTable
-        products={products}
-        filterText={filterText}
-        inStockOnly={inStockOnly}
-      />
-    </div>
-  );
-}
-
-const PRODUCTS = [
-  { category: "Fruits", price: "$1", stocked: true, name: "Apple" },
-  { category: "Fruits", price: "$1", stocked: true, name: "Dragonfruit" },
-  { category: "Fruits", price: "$2", stocked: false, name: "Passionfruit" },
-  { category: "Vegetables", price: "$2", stocked: true, name: "Spinach" },
-  { category: "Vegetables", price: "$4", stocked: false, name: "Pumpkin" },
-  { category: "Vegetables", price: "$1", stocked: true, name: "Peas" },
-];
-
-export default function App() {
-  return <FilterableProductTable products={PRODUCTS} />;
+  // This is the location (in React) where we want the map to be displayed
+  return <div ref={mapRef}></div>;
 }

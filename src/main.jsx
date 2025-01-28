@@ -1,5 +1,10 @@
-import { createRoot } from "react-dom/client";
 import React from "react";
-import App from "./App";
+import ReactDOM from "react-dom/client";
+import Application from "./App.tsx";
+import "ol/ol.css";
 
-createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <Application />
+  </React.StrictMode>,
+);
