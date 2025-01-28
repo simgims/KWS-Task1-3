@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Feature, Map, MapBrowserEvent, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import { OSM } from "ol/source";
+
 import "ol/ol.css";
 import { useGeographic } from "ol/proj";
 import VectorLayer from "ol/layer/Vector";
@@ -23,23 +24,21 @@ function focusStyle(feature: FeatureLike) {
   });
 }
 
-const CountyLayer = new VectorLayer({
+const municipalityLayer = new VectorLayer({
   source: new VectorSource({
-    url: "./KWS-Task1-3/fylker.json",
+    url: "KWS-Task1-3/fylker.json",
     format: new GeoJSON(),
   }),
-  style: new Style({
-    stroke: new Stroke({ color: "red", width: 2 }),
-  }),
+  style: new Style({ stroke: new Stroke({ color: "red", width: 2 }) }),
 });
 
 const map = new Map({
   layers: [
     new TileLayer({ source: new OSM() }),
-    CountyLayer,
+    municipalityLayer,
     new VectorLayer({
       source: new VectorSource({
-        url: "./KWS-Task1-3/VGS.json",
+        url: "KWS-Task1-3/VGS.json",
         format: new GeoJSON(),
       }),
     }),
@@ -55,9 +54,9 @@ export function App() {
     for (const feature of focusFeatures.current) {
       feature.setStyle(undefined);
     }
-    const features = CountyLayer.getSource()!.getFeaturesAtCoordinate(
-      e.coordinate,
-    );
+    const features = municipalityLayer
+      .getSource()!
+      .getFeaturesAtCoordinate(e.coordinate);
     for (const feature of features) {
       feature.setStyle(focusStyle);
     }
